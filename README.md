@@ -7,7 +7,7 @@
     - stop-loss
     - take-profit
 - Bot functionality
-  - The bot tracks the cost of collateral and debt using Chainlink
+  - The bot tracks the value of collateral and debt using Chainlink
   - When the stop-loss or take-profit signals are triggered, the bot runs the below set of steps to avoid liquidation
     1. Get Flashloan equal to debt
     1. Repay user debt
