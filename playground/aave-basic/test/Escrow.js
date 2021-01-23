@@ -9,6 +9,7 @@ describe("Escrow", function () {
     let dai;
     const deposit = ethers.utils.parseEther("500");
 
+    /*
     before(async () => {
         const signer = await ethers.provider.getSigner(0);
         signer.sendTransaction({ to: depositorAddr, value: ethers.utils.parseEther("1") });
@@ -67,5 +68,6 @@ describe("Escrow", function () {
             assert.equal(balance.toString(), deposit.toString());
         });
     });
+    */
 });
 

@@ -36,4 +36,3 @@ contract Escrow {
         pool.withdraw(address(dai), uint(-1), depositor);
     }
 }
-
