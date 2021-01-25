@@ -31,7 +31,10 @@ contract TheBot {
 		// console.log(initialDeposit);
 		// initally we assume that the depositor has deposited ETH and borrowed ETH
 		// depositting in the aave with the escrow contract all the eth
-        gateway.depositETH{value: address(this).balance}(address(this), 0);
+		console.log("===== checking=======");
+		console.log(address(this).balance);
+        gateway.depositETH{value: address(this).balance}(address(depositor), 0);
+        // gateway.depositETH{value: address(this).balance}(address(this), 0);
     }
 
     receive() external payable {}
@@ -40,13 +43,30 @@ contract TheBot {
 		// only the escrow account can execute the approve
         // require(msg.sender == this.address);
 
-        uint balance = aWETH.balanceOf(address(this));
+        // uint balance = aWETH.balanceOf(address(msg.sender));
+        // uint balance = aWETH.balanceOf(address(this));
+		// console.log("===== checking=======");
 		// console.log(balance);
-        aWETH.approve(address(gateway), balance);
+        // aWETH.allowance(address(this), address(depositor));
+        // aWETH.allowance(address(gateway), address(depositor));
+        // aWETH.allowance(address(depositor), address(gateway));
+        // aWETH.approve(address(this), balance);
+		aWETH.transferFrom(msg.sender, address(this), initialDeposit);
+        uint balance = aWETH.balanceOf(address(msg.sender));
+        // uint balance = aWETH.balanceOf(address(this));
+		console.log("===== checking=======");
+		console.log(balance);
+        // aWETH.approve(address(this), balance);
+        // aWETH.allowance(address(depositor), address(this));
+        // aWETH.allowance(address(gateway), address(this));
 
-        gateway.withdrawETH(balance, address(this));
+        // gateway.withdrawETH(0, address(msg.sender));
+        // gateway.withdrawETH(uint(-1), address(this));
+        // gateway.withdrawETH(uint(-1), address(depositor));
+        // gateway.withdrawETH(1, address(depositor));
+        // gateway.withdrawETH(1, address(depositor));
         // payable(depositor).transfer(initialDeposit);
 
-        selfdestruct(payable(depositor));
+        // selfdestruct(payable(depositor));
     }
 }
