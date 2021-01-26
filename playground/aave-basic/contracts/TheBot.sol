@@ -39,6 +39,13 @@ contract TheBot {
 
     receive() external payable {}
 
+	/*
+	function permitHelper(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+		// aWETH.permit(owner, spender, value, deadline, v, r, s);
+		unint x;
+	}
+	*/
+
     function approve() external {
 		// only the escrow account can execute the approve
         // require(msg.sender == this.address);

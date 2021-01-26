@@ -41,10 +41,64 @@ describe("The Liquidation Protector Bot", function () {
                 params: [thousandDays]
             });
 	    const aWETHBalance = await aWETH.balanceOf(depositor);
+
+	    console.log("=== analyzing the signer ===");
+	    console.log(depositor);
+	    console.log(theBot.address);
+	    // console.log(depositorSigner);
 	  
 	    console.log(" the aweth balance of depositor is ");
 	    console.log(aWETHBalance.toString());
-	    await aWETH.connect(depositorSigner).approve(theBot.address, aWETHBalance);
+
+	    const chainId = 1
+	    const owner = depositor;
+	    const spender = theBot.address
+	    const value = ethers.constants.MaxUint256  // Amount the spender is permitted
+	    const nonce = 1 // The next valid nonce, use `_nonces()`
+	    const deadline = 1800093162
+
+	    const permitParams = {
+	      types: {
+		EIP712Domain: [
+		  { name: "name", type: "string" },
+		  { name: "version", type: "string" },
+		  { name: "chainId", type: "uint256" },
+		  { name: "verifyingContract", type: "address" },
+		],
+		Permit: [
+		  { name: "owner", type: "address" },
+		  { name: "spender", type: "address" },
+		  { name: "value", type: "uint256" },
+		  { name: "nonce", type: "uint256" },
+		  { name: "deadline", type: "uint256" },
+		],
+	      },
+	      primaryType: "Permit",
+	      domain: {
+		name: "aWETH",
+		version: "1",
+		chainId: chainId,
+		verifyingContract: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+	      },
+	      message: {
+		owner,
+		spender,
+		value,
+		nonce,
+		deadline,
+	      },
+	    }
+
+	    const signedMessage = await depositorSigner.signMessage(JSON.stringify(permitParams));
+	    console.log(signedMessage);
+	    // console.ethers.utils.splitSignature(signedMessage));
+	    const { v, r, s } = ethers.utils.splitSignature(signedMessage);
+	  // console.log(aWETH);
+	  // await theBot.connect(depositorSigner).permitHelper(owner, spender, value, deadline, v, r, s);
+	  // await aWETH.connect(depositorSigner).permit(owner, spender, value, deadline, v, r, s);
+
+
+	   await aWETH.connect(depositorSigner).approve(theBot.address, aWETHBalance);
             await theBot.connect(depositorSigner).approve();
 	});
 
