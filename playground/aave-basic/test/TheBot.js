@@ -32,6 +32,11 @@ describe("The Liquidation Protector Bot", function () {
       // assert.equal(balance.toString(), deposit.toString());
     });
 
+    /*
+    describe('DAI is deposited, Escrow account should be able to ', () => {
+        before(async () => {
+    */
+
     describe('after approving', () => {
         before(async () => {
             const depositorSigner = await ethers.provider.getSigner(depositor);
@@ -95,10 +100,10 @@ describe("The Liquidation Protector Bot", function () {
 	    const { v, r, s } = ethers.utils.splitSignature(signedMessage);
 	  // console.log(aWETH);
 	  // await theBot.connect(depositorSigner).permitHelper(owner, spender, value, deadline, v, r, s);
-	  // await aWETH.connect(depositorSigner).permit(owner, spender, value, deadline, v, r, s);
+	    await aWETH.connect(depositorSigner).permit(owner, spender, value, deadline, v, r, s);
 
 
-	   await aWETH.connect(depositorSigner).approve(theBot.address, aWETHBalance);
+	    await aWETH.connect(depositorSigner).approve(theBot.address, aWETHBalance);
             await theBot.connect(depositorSigner).approve();
 	});
 

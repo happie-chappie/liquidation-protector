@@ -23,6 +23,10 @@ contract TheBot {
 
     IWETHGateway gateway = IWETHGateway(0xDcD33426BA191383f1c9B431A342498fdac73488);
     IERC20 aWETH = IERC20(0x030bA81f1c18d280636F32af80b9AAd02Cf0854e);
+	// aave interest bearing DAI
+    IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
+    // the DAI stablecoin 
+    IERC20 dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     constructor() payable {
         depositor = msg.sender;
