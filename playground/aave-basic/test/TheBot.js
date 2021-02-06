@@ -1,4 +1,11 @@
+const fs = require('fs');
 const { assert } = require("chai");
+
+const getAbi = require('./getAbi');
+const aTokenAbi = getAbi.getATokenAbi();
+// console.log(aTokenAbi);
+
+// const TokenAbi = fs.readFileSync("./aTokenAbi.json");
 
 describe("The Liquidation Protector Bot", function () {
     let theBot;
@@ -6,8 +13,12 @@ describe("The Liquidation Protector Bot", function () {
     let depositor;
     let pool;
     let balanceBefore;
+    let aTokenContract;
 
     const deposit = ethers.utils.parseEther("2");
+
+    // sample address on mainnet with tons of ERC 20 tokens
+    const billionaireAddress = "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503";
 
     before(async () => {
         const TheBot = await ethers.getContractFactory("TheBot");
@@ -15,9 +26,11 @@ describe("The Liquidation Protector Bot", function () {
 	console.log("====== The Initial depositor balance =====");
 	balanceBefore = await ethers.provider.getBalance(depositor);
 	console.log(balanceBefore.toString());
+
         theBot = await TheBot.deploy({ value: deposit });
         await theBot.deployed();
         aWETH = await ethers.getContractAt("IERC20", "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e");
+	aTokenContract = await ethers.getContractAt(aTokenAbi, "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e");
 	pool = await ethers.getContractAt("ILendingPool", "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9");
     });
 
@@ -32,36 +45,43 @@ describe("The Liquidation Protector Bot", function () {
       // assert.equal(balance.toString(), deposit.toString());
     });
 
+    it("Testing making a transaction", async () => {
+      theBot.makeTransaction();
+    });
+
+    /*
+    it('Should fetch all the aTokens', async () => {
+      const aTokens = await theBot.getAllTokens();
+      console.log(aTokens);
+    });
+    */
+
     /*
     describe('DAI is deposited, Escrow account should be able to ', () => {
         before(async () => {
     */
-
-    describe('after approving', () => {
+    describe('user permiting another account to use their funds', () => {
         before(async () => {
+	    // fetch the depositor
             const depositorSigner = await ethers.provider.getSigner(depositor);
+	    // time travelling
             const thousandDays = 1000 * 24 * 60 * 60;
             await hre.network.provider.request({
                 method: "evm_increaseTime",
                 params: [thousandDays]
             });
+	    // checking the depositor aWETH balance
 	    const aWETHBalance = await aWETH.balanceOf(depositor);
-
-	    console.log("=== analyzing the signer ===");
-	    console.log(depositor);
-	    console.log(theBot.address);
-	    // console.log(depositorSigner);
-	  
-	    console.log(" the aweth balance of depositor is ");
-	    console.log(aWETHBalance.toString());
 
 	    const chainId = 1
 	    const owner = depositor;
 	    const spender = theBot.address
-	    const value = ethers.constants.MaxUint256  // Amount the spender is permitted
-	    const nonce = 1 // The next valid nonce, use `_nonces()`
-	    const deadline = 1800093162
+	    // const value = ethers.constants.MaxUint256  // Amount the spender is permitted
+	    const value = 100
+	    const nonce = 4 // The next valid nonce, use `_nonces()`
+	    const deadline = 1791193162
 
+	    // depositor signing message to give the escorow permissions to use aWETH
 	    const permitParams = {
 	      types: {
 		EIP712Domain: [
@@ -94,16 +114,54 @@ describe("The Liquidation Protector Bot", function () {
 	      },
 	    }
 
-	    const signedMessage = await depositorSigner.signMessage(JSON.stringify(permitParams));
+	    const signedMessage = await depositorSigner.signMessage(JSON.stringify({data: permitParams}));
+	    // const signedMessage = await depositorSigner.signMessage({data: permitParams});
+	    const latestNonce = await depositorSigner.getTransactionCount();
+	    console.log("=========== testing the permit ==========");
 	    console.log(signedMessage);
-	    // console.ethers.utils.splitSignature(signedMessage));
+	    console.log(latestNonce);
+	    console.log(ethers.utils.splitSignature(signedMessage));
 	    const { v, r, s } = ethers.utils.splitSignature(signedMessage);
-	  // console.log(aWETH);
-	  // await theBot.connect(depositorSigner).permitHelper(owner, spender, value, deadline, v, r, s);
-	    await aWETH.connect(depositorSigner).permit(owner, spender, value, deadline, v, r, s);
+	    const prefix = "\x19Ethereum Signed Message:\n32";
+	    const prefixedHash = ethers.utils.keccak256(owner, spender, 10, 21200, 1);
+	    // console.log(ecrecover(prefixedHash, v, r, s));
+	    //console.log(v);
+	    // console.log(r);
+	    // console.log(s);
+
+	  // await aTokenContract.connect(depositorSigner).permit(owner, spender, value, deadline, v, r, s);
+	})
+        it('escrow contract should be able to use the funds', async () => {
+	    console.log("====== Testing the permit workflow =====");
+        });
 
 
+    })
+
+    describe('after approving', () => {
+        before(async () => {
+	    // fetch the depositor
+            const depositorSigner = await ethers.provider.getSigner(depositor);
+	    // time travelling
+            const thousandDays = 1000 * 24 * 60 * 60;
+            await hre.network.provider.request({
+                method: "evm_increaseTime",
+                params: [thousandDays]
+            });
+	    // checking the depositor aWETH balance
+	    const aWETHBalance = await aWETH.balanceOf(depositor);
+
+	    console.log("=== analyzing the signer ===");
+	    console.log(depositor);
+	    console.log(theBot.address);
+	    // console.log(depositorSigner);
+	  
+	    console.log(" the aweth balance of depositor is ");
+	    console.log(aWETHBalance.toString());
+
+	    // depositor approving the escorow to use aWETH
 	    await aWETH.connect(depositorSigner).approve(theBot.address, aWETHBalance);
+	    // calling the approve functionality of the contract
             await theBot.connect(depositorSigner).approve();
 	});
 
