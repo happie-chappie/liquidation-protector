@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./IERC20.sol";
 import "./IWETHGateway.sol";
 import "./IProtocolDataProvider.sol";
+import "./ILendingPool.sol";
 import "hardhat/console.sol";
 
 /*
@@ -39,9 +40,9 @@ contract TheBot {
     IERC20 dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 	// aave protocol data provider
 	IProtocolDataProvider protocolDataProvider = IProtocolDataProvider(0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d);
+	ILendingPool constant pool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
 
-
-    constructor() payable {
+    constructor(uint _amount) payable {
         depositor = msg.sender;
         initialDeposit = msg.value;
 
@@ -50,12 +51,41 @@ contract TheBot {
 		// depositting in the aave with the escrow contract all the eth
 		console.log("===== checking=======");
 		console.log(address(this).balance);
+		// dai.transferFrom(depositor, address(this),  _amount);
+		// console.log(dai.balanceOf(address(this)));
 		// we deposit ETH into depositor account
-        gateway.depositETH{value: address(this).balance}(address(depositor), 0);
+        // gateway.depositETH{value: address(this).balance}(address(depositor), 0);
         // gateway.depositETH{value: address(this).balance}(address(this), 0);
     }
 
     receive() external payable {}
+
+
+	function executeOperation(
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata premiums,
+        address,
+        bytes calldata
+    )
+        external
+        // override
+        returns (bool)
+    {
+		console.log("======== in the execution operation =========");
+        // for (uint i = 0; i < assets.length; i++) {
+		uint amountOwing = amounts[0] + premiums[0];
+		console.log("======== in the execution operation =========");
+		console.log(amounts[0]);
+		console.log(premiums[0]);
+		console.log(amountOwing);
+		console.log(dai.balanceOf(address(this)));
+		dai.approve(address(pool), amountOwing);
+		console.log("======== in the execution operation =========");
+		// }
+        
+        return true;
+    }
 
 	function makeTransaction() external {
 		console.log("==== making transaction =====");
@@ -67,6 +97,37 @@ contract TheBot {
 		unint x;
 	}
 	*/
+    function flashLoanPlay() external {
+		console.log("======== working with flash loan =========");
+		address receiverAddress = address(this);
+
+        address[] memory assets = new address[](1);
+        assets[0] = address(dai);
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 10000;
+
+        // 0 = no debt, 1 = stable, 2 = variable
+        uint256[] memory modes = new uint256[](1);
+        modes[0] = 1;
+
+        address onBehalfOf = address(this);
+        bytes memory params = "";
+        uint16 referralCode = 0;
+
+		console.log("===== starting the loan =======");
+
+        pool.flashLoan(
+            receiverAddress,
+            assets,
+            amounts,
+            modes,
+            onBehalfOf,
+            "",
+            0
+        );
+		
+	}
 
     function approve() external {
 		// only the escrow account can execute the approve
