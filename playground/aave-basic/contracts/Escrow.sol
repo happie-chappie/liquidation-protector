@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.7.5;
+// pragma solidity ^0.7.5;
+pragma solidity >=0.6.0 <0.8.0;
 
 import "./IERC20.sol";
 import "./ILendingPool.sol";
@@ -31,8 +32,8 @@ contract Escrow {
 
     function approve() external {
         require(msg.sender == arbiter);
-        aDai.approve(address(pool), type(uint).max);
-        pool.withdraw(address(dai), initialBalance, beneficiary);
-        pool.withdraw(address(dai), uint(-1), depositor);
+        // aDai.approve(address(pool), type(uint).max);
+        // pool.withdraw(address(dai), initialBalance, beneficiary);
+        // pool.withdraw(address(dai), uint(-1), depositor);
     }
 }

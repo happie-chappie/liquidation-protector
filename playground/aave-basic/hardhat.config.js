@@ -2,7 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require('dotenv').config();
 
 module.exports = {
-  solidity: "0.7.5",
+  solidity: "0.6.6",
   networks: {
     hardhat: {
       forking: {
